@@ -14,6 +14,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)
 bot = telebot.TeleBot(BOT_TOKEN)
 USERS_FILE = "users.json"
 
+bot.remove_webhook()
+print("Webhook removed. You can now start polling safely.")
+
 # ---------- helpers for JSON storage ----------
 def load_users():
     if not os.path.exists(USERS_FILE):
@@ -129,3 +132,4 @@ def handle_msg(m):
 if __name__ == "__main__":
     print("Bot started...")
     bot.infinity_polling()
+
