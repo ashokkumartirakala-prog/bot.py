@@ -1,6 +1,7 @@
 # bot.py
 import os
 import json
+import time
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -14,8 +15,12 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)
 bot = telebot.TeleBot(BOT_TOKEN)
 USERS_FILE = "users.json"
 
-bot.remove_webhook()
-print("Webhook removed. You can now start polling safely.")
+# ---------- remove webhook before polling ----------
+try:
+    bot.remove_webhook()
+    print("✅ Webhook removed. Safe to start polling...")
+except Exception as e:
+    print(f"⚠️ Error removing webhook: {e}")
 
 # ---------- helpers for JSON storage ----------
 def load_users():
@@ -103,8 +108,6 @@ def handle_msg(m):
     if uid in users and users[uid].get("approved"):
         text = m.text.strip()
         # ---- PLACE FOR YOUR BOT LOGIC / AI REPLY ----
-        # if you have OpenAI enabled you can call it here to generate reply.
-        # For example (synchronous simple example, replace with your async method if needed):
         if OPENAI_API_KEY:
             try:
                 import openai
@@ -128,8 +131,12 @@ def handle_msg(m):
     else:
         bot.send_message(chat_id=m.chat.id, text="⏳ You are not approved yet. Please wait for admin approval.")
 
-# ---------- start polling ----------
+# ---------- start polling safely ----------
 if __name__ == "__main__":
-    print("Bot started...")
-    bot.infinity_polling()
-
+    print("🤖 Bot started...")
+    while True:
+        try:
+            bot.infinity_polling(timeout=20, long_polling_timeout=10)
+        except Exception as e:
+            print(f"⚠️ Polling error: {e}")
+            time.sleep(5)  # wait before retry
