@@ -3,6 +3,7 @@ import os
 import json
 import time
 import telebot
+import os, sys, psutil
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ---------- CONFIG (use environment variables) ----------
@@ -23,7 +24,7 @@ except Exception as e:
     print(f"⚠️ Error removing webhook: {e}")
 
 # ---------- prevent duplicate instances ----------
-import os, sys, psutil
+
 current_pid = os.getpid()
 for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
     try:
@@ -153,4 +154,5 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"⚠️ Polling error: {e}")
             time.sleep(5)  # wait before retry
+
 
