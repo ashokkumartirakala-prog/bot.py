@@ -22,6 +22,19 @@ try:
 except Exception as e:
     print(f"⚠️ Error removing webhook: {e}")
 
+# ---------- prevent duplicate instances ----------
+import os, sys, psutil
+current_pid = os.getpid()
+for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+    try:
+        if proc.info['pid'] != current_pid and proc.info['cmdline']:
+            if 'bot.py' in ' '.join(proc.info['cmdline']):
+                print(f"⚠️ Duplicate bot.py detected (PID {proc.info['pid']}). Killing it...")
+                proc.kill()
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        continue
+
+
 # ---------- helpers for JSON storage ----------
 def load_users():
     if not os.path.exists(USERS_FILE):
@@ -140,3 +153,4 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"⚠️ Polling error: {e}")
             time.sleep(5)  # wait before retry
+
