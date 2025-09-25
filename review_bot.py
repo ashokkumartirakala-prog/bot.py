@@ -3,53 +3,60 @@ import os
 import json
 import time
 import psutil
+import requests
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from openai import OpenAI
 
-# ---------- prevent duplicate instances ----------
+# ---------- CONFIG ----------
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID"))
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)
+
+# ---------- auto-kill duplicate bot.py processes ----------
 current_pid = os.getpid()
-for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+for proc in psutil.process_iter(['pid', 'cmdline']):
     try:
         if proc.info['pid'] != current_pid and proc.info['cmdline']:
             if 'bot.py' in ' '.join(proc.info['cmdline']):
-                print(f"⚠️ Duplicate bot.py detected (PID {proc.info['pid']}). Killing it...")
+                print(f"⚠️ Killing duplicate bot.py PID {proc.info['pid']}")
                 proc.kill()
     except (psutil.NoSuchProcess, psutil.AccessDenied):
         continue
 
-# ---------- CONFIG (use environment variables) ----------
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")          # set on server
-ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID"))      # set on server (your Telegram ID)
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)   # optional
-
-# ---------- initialize ----------
-bot = telebot.TeleBot(BOT_TOKEN)
-USERS_FILE = "users.json"
-
-# ---------- remove webhook before polling ----------
+# ---------- remove any existing webhook ----------
 try:
-    bot.remove_webhook()
-    print("✅ Webhook removed. Safe to start polling...")
+    resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getWebhookInfo").json()
+    if resp.get("result", {}).get("url"):
+        print("⚠️ Webhook detected. Removing...")
+        requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook")
+        print("✅ Webhook removed.")
 except Exception as e:
-    print(f"⚠️ Error removing webhook: {e}")
+    print(f"⚠️ Error checking/deleting webhook: {e}")
 
-# ---------- helpers for JSON storage ----------
+# ---------- initialize bot ----------
+bot = telebot.TeleBot(BOT_TOKEN)
+users_file = "users.json"
+
+# ---------- initialize OpenAI client ----------
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+
+# ---------- helpers ----------
 def load_users():
-    if not os.path.exists(USERS_FILE):
+    if not os.path.exists(users_file):
         return {}
-    with open(USERS_FILE, "r") as f:
+    with open(users_file, "r") as f:
         try:
             return json.load(f)
         except json.JSONDecodeError:
             return {}
 
 def save_users(users):
-    with open(USERS_FILE, "w") as f:
+    with open(users_file, "w") as f:
         json.dump(users, f, indent=2)
 
 users = load_users()
 
-# ---------- build admin inline keyboard ----------
 def admin_kbd_for(user_id):
     kb = InlineKeyboardMarkup()
     kb.row(
@@ -58,7 +65,7 @@ def admin_kbd_for(user_id):
     )
     return kb
 
-# ---------- /start handler ----------
+# ---------- /start ----------
 @bot.message_handler(commands=["start"])
 def cmd_start(msg):
     uid = str(msg.chat.id)
@@ -66,7 +73,6 @@ def cmd_start(msg):
     if uid not in users:
         users[uid] = {"approved": False, "username": username}
         save_users(users)
-        # Notify admin
         text = f"🔔 New user request\n\n👤 {username}\n🆔 {uid}\n\nClick to Approve or Deny."
         bot.send_message(chat_id=ADMIN_CHAT_ID, text=text, reply_markup=admin_kbd_for(uid))
         bot.send_message(chat_id=uid, text="✅ Request sent. Please wait for admin approval.")
@@ -76,18 +82,17 @@ def cmd_start(msg):
         else:
             bot.send_message(chat_id=uid, text="⏳ Your request is pending admin approval. Please wait.")
 
-# ---------- callback query handler ----------
+# ---------- callback query ----------
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
     try:
         if call.from_user.id != ADMIN_CHAT_ID:
-            bot.answer_callback_query(call.id, "You are not authorized to do this.")
+            bot.answer_callback_query(call.id, "You are not authorized.")
             return
 
         action, uid = call.data.split(":", 1)
-
         if uid not in users:
-            bot.answer_callback_query(call.id, "User not found in DB.")
+            bot.answer_callback_query(call.id, "User not found.")
             return
 
         if action == "approve":
@@ -109,7 +114,7 @@ def handle_callback(call):
         else:
             bot.answer_callback_query(call.id, "Unknown action.")
     except Exception as e:
-        bot.answer_callback_query(call.id, f"Error: {str(e)}")
+        bot.answer_callback_query(call.id, f"Error: {e}")
 
 # ---------- message handler ----------
 @bot.message_handler(func=lambda m: True)
@@ -117,24 +122,21 @@ def handle_msg(m):
     uid = str(m.chat.id)
     if uid in users and users[uid].get("approved"):
         text = m.text.strip()
-        if OPENAI_API_KEY:
+        if client:
             try:
-                import openai
-                openai.api_key = OPENAI_API_KEY
-                resp = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                resp = client.chat.completions.create(
+                    model="gpt-4o-mini",
                     messages=[
                         {"role": "system", "content": "You are a polite assistant that writes short replies to user reviews."},
                         {"role": "user", "content": text}
                     ],
                     max_tokens=120
                 )
-                reply = resp["choices"][0]["message"]["content"].strip()
+                reply = resp.choices[0].message.content.strip()
             except Exception as e:
                 reply = f"⚠️ AI error: {e}"
         else:
             reply = f"🤖 (Demo reply) You said: {text}"
-
         bot.send_message(chat_id=m.chat.id, text=reply)
     else:
         bot.send_message(chat_id=m.chat.id, text="⏳ You are not approved yet. Please wait for admin approval.")
@@ -144,7 +146,7 @@ if __name__ == "__main__":
     print("🤖 Bot started...")
     while True:
         try:
-            bot.remove_webhook()   # just in case
+            bot.remove_webhook()  # just in case
             bot.infinity_polling(timeout=20, long_polling_timeout=10)
         except Exception as e:
             print(f"⚠️ Polling error: {e}")
