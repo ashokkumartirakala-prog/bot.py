@@ -5,7 +5,6 @@ import time
 import psutil
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from openai import OpenAI
 
 # ---------- prevent duplicate instances ----------
 current_pid = os.getpid()
@@ -18,19 +17,16 @@ for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
     except (psutil.NoSuchProcess, psutil.AccessDenied):
         continue
 
-# ---------- CONFIG ----------
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID"))
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)
+# ---------- CONFIG (use environment variables) ----------
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")          # set on server
+ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID"))      # set on server (your Telegram ID)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)   # optional
 
 # ---------- initialize ----------
 bot = telebot.TeleBot(BOT_TOKEN)
 USERS_FILE = "users.json"
 
-# ---------- initialize OpenAI client ----------
-client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
-
-# ---------- remove webhook ----------
+# ---------- remove webhook before polling ----------
 try:
     bot.remove_webhook()
     print("✅ Webhook removed. Safe to start polling...")
@@ -121,17 +117,19 @@ def handle_msg(m):
     uid = str(m.chat.id)
     if uid in users and users[uid].get("approved"):
         text = m.text.strip()
-        if client:
+        if OPENAI_API_KEY:
             try:
-                resp = client.chat.completions.create(
-                    model="gpt-4o-mini",  # or gpt-4o / gpt-3.5-turbo
+                import openai
+                openai.api_key = OPENAI_API_KEY
+                resp = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
                     messages=[
                         {"role": "system", "content": "You are a polite assistant that writes short replies to user reviews."},
                         {"role": "user", "content": text}
                     ],
                     max_tokens=120
                 )
-                reply = resp.choices[0].message.content.strip()
+                reply = resp["choices"][0]["message"]["content"].strip()
             except Exception as e:
                 reply = f"⚠️ AI error: {e}"
         else:
