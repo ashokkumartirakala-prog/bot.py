@@ -26,7 +26,7 @@ async def generate_qr(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     # Replace with your Render app base URL
-    base_url = os.environ.get("APP_BASE_URL", "https://yourapp.onrender.com")
+    base_url = os.environ.get("APP_BASE_URL", "https://app-py-pn4q.onrender.com")
     url = f"{base_url}/r/{code}"
 
     # Generate QR
@@ -55,3 +55,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
