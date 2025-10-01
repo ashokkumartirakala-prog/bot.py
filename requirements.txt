@@ -1,3 +1,4 @@
-pyTelegramBotAPI
-openai
-requests
+Flask==2.3.3
+openai==1.0.0
+python-telegram-bot==20.3
+qrcode[pil]==7.4.3
