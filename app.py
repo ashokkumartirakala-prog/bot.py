@@ -23,7 +23,7 @@ businesses = {
 
 # Generate AI-powered review
 def generate_review(business_name, business_type):
-    prompt = f"Write a short, natural and positive Google review for a {business_type} named {business_name}. Keep it friendly and realistic."
+    prompt = f"Write a short,simple, natural and positive Google review for a {business_type} named {business_name}. Keep it friendly and realistic."
     response = openai.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
