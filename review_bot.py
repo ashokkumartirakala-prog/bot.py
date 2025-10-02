@@ -8,6 +8,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 business_codes = {
     "salonA": "Salon A",
     "hospitalB": "Hospital B",
+    "salonunisex": "salon unisex",
 }
 
 # Start command
@@ -55,4 +56,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
