@@ -51,28 +51,77 @@ def review_page(code):
             button:hover {{ background: #45a049; }}
             p#review {{ font-size: 16px; padding: 15px; border: 1px dashed #aaa; border-radius: 10px; background: #f1f1f9; }}
             /* Modal styles */
-            .modal {{
-                display: none;  /* hidden by default! */
-                position: fixed;
-                z-index: 9999;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0,0,0,0.6);
-                align-items: center;
-                justify-content: center;
-            }}
-            .modal-content {{
-                background: white;
-                padding: 30px;
-                border-radius: 12px;
-                text-align: center;
-                width: 80%;
-                max-width: 300px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-                animation: fadeIn 0.3s ease;
-            }}
+.modal {
+    display: none;  /* hidden by default */
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
+
+.modal-content {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 20px;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    animation: fadeIn 0.3s ease;
+}
+
+.checkmark {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 5px solid #4CAF50;
+    position: relative;
+    animation: pop 0.3s ease;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 10px;
+    width: 20px;
+    height: 40px;
+    border: solid #4CAF50;
+    border-width: 0 5px 5px 0;
+    transform: rotate(45deg);
+    animation: draw 0.5s ease forwards;
+}
+
+@keyframes pop {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes draw {
+    from { height: 0; }
+    to { height: 40px; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content p {
+    font-size: 18px;
+    color: #333;
+    margin-top: 20px;
+    font-weight: 500;
+}
+
             .checkmark {{
                 width: 56px; height: 56px; border-radius: 50%; display: inline-block;
                 border: 4px solid #4CAF50; position: relative; animation: pop 0.3s ease;
