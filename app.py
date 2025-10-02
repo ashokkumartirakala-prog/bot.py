@@ -12,7 +12,7 @@ businesses = {
     "salonA": {
         "name": "Salon A",
         "type": "salon",
-        "google_review_url": "https://g.page/r/XXXXXXXX"  # Replace with actual link
+        "google_review_url": "https://search.google.com/local/writereview?placeid=ChIJZ9bhmVqLXzkRFNPVjQcPi3w"  # Replace with actual link
     },
     "hospitalB": {
         "name": "Hospital B",
