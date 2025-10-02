@@ -1,52 +1,78 @@
-import os
 from flask import Flask, render_template_string
-from openai import OpenAI
+import openai
+import os
 
 app = Flask(__name__)
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# Set your OpenAI API key in environment variables
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Business categories mapping
-business_categories = {
-    "salonA": "salon and beauty services",
-    "hospitalB": "hospital and healthcare",
-    "cafeC": "coffee shop and cafe",
+# Business details with their Google review links
+businesses = {
+    "salonA": {
+        "name": "Salon A",
+        "type": "salon",
+        "google_review_url": "https://g.page/r/XXXXXXXX"  # Replace with actual link
+    },
+    "hospitalB": {
+        "name": "Hospital B",
+        "type": "hospital",
+        "google_review_url": "https://g.page/r/YYYYYYYY"
+    }
 }
 
-@app.route("/")
-def home():
-    return "Welcome! Use /r/<code> to see a business review page."
+# Generate AI-powered review
+def generate_review(business_name, business_type):
+    prompt = f"Write a short, natural and positive Google review for a {business_type} named {business_name}. Keep it friendly and realistic."
+    
+    response = openai.chat.completions.create(
+        model="gpt-4o-mini",  # lightweight + cheap
+        messages=[
+            {"role": "system", "content": "You generate short, natural-sounding Google review suggestions."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=50,
+        temperature=0.7
+    )
+    
+    return response.choices[0].message.content.strip()
 
 @app.route("/r/<code>")
 def review_page(code):
-    if code not in business_categories:
-        return "This business is not registered yet."
+    if code not in businesses:
+        return "Invalid business code", 404
 
-    # Generate AI review suggestion
-    prompt = f"Write a short, positive Google review (1-2 sentences) for a {business_categories[code]}."
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",  # lightweight + cost effective
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=60,
-    )
-
-    review = response.choices[0].message.content.strip()
+    business = businesses[code]
+    suggested_review = generate_review(business["name"], business["type"])
 
     html = f"""
     <html>
-      <head>
-        <title>Review for {code}</title>
-      </head>
-      <body style="font-family: Arial; text-align: center; margin-top: 50px;">
-        <h2>Leave a Review</h2>
-        <p>Suggested review:</p>
-        <textarea rows="4" cols="50">{review}</textarea>
-        <br><br>
-        <a href="https://www.google.com/maps/search/?api=1&query={code}" target="_blank">
-          👉 Click here to post on Google Reviews
-        </a>
-      </body>
+    <head>
+        <title>{business['name']} Review</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; text-align: center; padding: 40px; }}
+            .box {{ border: 1px solid #ccc; padding: 20px; border-radius: 12px; display: inline-block; }}
+            button {{ margin: 10px; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; }}
+        </style>
+        <script>
+            function copyReview() {{
+                const reviewText = document.getElementById("review").innerText;
+                navigator.clipboard.writeText(reviewText).then(() => {{
+                    alert("✅ Review copied! Now click 'Write Google Review'.");
+                }});
+            }}
+        </script>
+    </head>
+    <body>
+        <div class="box">
+            <h2>{business['name']}</h2>
+            <p id="review">{suggested_review}</p>
+            <button onclick="copyReview()">📋 Copy Review</button>
+            <a href="{business['google_review_url']}" target="_blank">
+                <button>✍️ Write Google Review</button>
+            </a>
+        </div>
+    </body>
     </html>
     """
     return render_template_string(html)
