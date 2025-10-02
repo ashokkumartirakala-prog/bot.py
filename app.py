@@ -21,8 +21,9 @@ businesses = {
     }
     "salonunisex": {
         "name": "salon unisex",
-        "type": "salonunisex and bridal studio",
+        "type": "unisex salon",
         "google_review_url": "https://search.google.com/local/writereview?placeid=ChIJZ9bhmVqLXzkRFNPVjQcPi3w"
+
 }
 
 # Generate AI-powered review
