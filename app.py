@@ -85,29 +85,33 @@ def review_page(code):
                 background: #45a049;
             }}
 
-            /* Modal styles */
+            /* Slide-up modal styles */
             .modal {{
                 display: none;
                 position: fixed;
                 z-index: 9999;
                 left: 0;
-                top: 0;
+                bottom: 0;
                 width: 100%;
-                height: 100%;
-                background-color: rgba(0,0,0,0.6);
-                align-items: center;
+                height: auto;
+                background-color: rgba(0,0,0,0.4);
                 justify-content: center;
-                padding: 15px;
+                align-items: flex-end;
+                padding: 0;
             }}
             .modal-content {{
                 background: white;
-                padding: 40px 30px;
-                border-radius: 20px;
+                padding: 30px 20px;
+                border-radius: 20px 20px 0 0;
                 text-align: center;
-                width: 90%;
-                max-width: 400px;
-                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                animation: fadeIn 0.3s ease;
+                width: 100%;
+                max-width: 500px;
+                box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+                transform: translateY(100%);
+                transition: transform 0.4s ease-out;
+            }}
+            .modal.show .modal-content {{
+                transform: translateY(0);
             }}
             .checkmark {{
                 width: 80px;
@@ -116,7 +120,7 @@ def review_page(code):
                 display: inline-block;
                 border: 5px solid #4CAF50;
                 position: relative;
-                animation: pop 0.3s ease;
+                margin: 0 auto;
             }}
             .checkmark:after {{
                 content: "";
@@ -128,33 +132,14 @@ def review_page(code):
                 border: solid #4CAF50;
                 border-width: 0 5px 5px 0;
                 transform: rotate(45deg);
-                animation: draw 0.5s ease forwards;
-            }}
-            @keyframes pop {{
-                from {{ transform: scale(0.5); opacity: 0; }}
-                to {{ transform: scale(1); opacity: 1; }}
-            }}
-            @keyframes draw {{
-                from {{ height: 0; }}
-                to {{ height: 48px; }}
-            }}
-            @keyframes fadeIn {{
-                from {{ opacity: 0; }}
-                to {{ opacity: 1; }}
             }}
             .modal-content p {{
-                font-size: 22px;
+                font-size: 20px;
                 color: #333;
-                margin-top: 25px;
+                margin-top: 20px;
                 font-weight: 600;
             }}
-
-            /* Mobile-specific adjustments */
             @media (max-width: 480px) {{
-                .modal-content {{
-                    width: 95%;
-                    padding: 50px 25px;
-                }}
                 .checkmark {{
                     width: 100px;
                     height: 100px;
@@ -166,8 +151,8 @@ def review_page(code):
                     height: 60px;
                 }}
                 .modal-content p {{
-                    font-size: 24px;
-                    margin-top: 30px;
+                    font-size: 22px;
+                    margin-top: 25px;
                 }}
             }}
         </style>
@@ -176,10 +161,10 @@ def review_page(code):
                 const reviewText = document.getElementById("review").innerText;
                 navigator.clipboard.writeText(reviewText).then(() => {{
                     const modal = document.getElementById("myModal");
-                    modal.style.display = "flex";
+                    modal.classList.add("show");
                     setTimeout(() => {{
                         window.open("{business['google_review_url']}", "_blank");
-                        modal.style.display = "none";
+                        modal.classList.remove("show");
                     }}, 1500);
                 }}).catch(() => {{
                     alert("❌ Copy failed, please try again.");
@@ -201,7 +186,7 @@ def review_page(code):
             <button onclick="newSuggestion()">🔄 New Suggestion</button>
         </div>
 
-        <!-- Modal -->
+        <!-- Slide-up Modal -->
         <div id="myModal" class="modal">
             <div class="modal-content">
                 <div class="checkmark"></div>
