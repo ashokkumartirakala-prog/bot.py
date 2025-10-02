@@ -68,6 +68,7 @@ def review_page(code):
                 border-radius: 16px;
                 display: inline-block;
                 max-width: 400px;
+                width: 90%;
             }}
             h2 {{ color: #333; }}
             p#review {{
@@ -79,7 +80,7 @@ def review_page(code):
             }}
             button {{
                 margin-top: 20px;
-                padding: 12px 24px;
+                padding: 14px 24px;
                 font-size: 16px;
                 border: none;
                 border-radius: 12px;
@@ -87,38 +88,44 @@ def review_page(code):
                 background: #4CAF50;
                 color: white;
                 transition: 0.3s;
+                width: 100%;
             }}
             button:hover {{
                 background: #43a047;
             }}
-            /* Stylish modal */
+            /* Responsive full-width modal */
             .modal {{
                 display: none;
                 position: fixed;
-                z-index: 1;
+                z-index: 9999;
                 left: 0;
                 top: 0;
                 width: 100%;
                 height: 100%;
-                overflow: auto;
-                background-color: rgba(0,0,0,0.4);
+                background-color: rgba(0,0,0,0.6);
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }}
             .modal-content {{
                 background-color: #fff;
-                margin: 15% auto;
                 padding: 20px;
-                border-radius: 12px;
-                width: 80%;
-                max-width: 300px;
+                border-radius: 16px;
+                width: 90%;
+                max-width: 400px;
                 text-align: center;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                animation: fadeIn 0.4s;
+            }}
+            @keyframes fadeIn {{
+                from {{opacity: 0; transform: translateY(-20px);}}
+                to {{opacity: 1; transform: translateY(0);}}
             }}
         </style>
         <script>
             function copyAndReview() {{
                 const reviewText = document.getElementById("review").innerText;
                 navigator.clipboard.writeText(reviewText).then(() => {{
-                    document.getElementById("myModal").style.display = "block";
+                    document.getElementById("myModal").style.display = "flex";
                     setTimeout(() => {{
                         window.open("{business['google_review_url']}", "_blank");
                         document.getElementById("myModal").style.display = "none";
