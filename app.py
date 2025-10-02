@@ -122,18 +122,6 @@ def review_page(code):
     font-weight: 500;
 }
 
-            .checkmark {{
-                width: 56px; height: 56px; border-radius: 50%; display: inline-block;
-                border: 4px solid #4CAF50; position: relative; animation: pop 0.3s ease;
-            }}
-            .checkmark:after {{
-                content: ""; position: absolute; left: 14px; top: 6px;
-                width: 14px; height: 28px; border: solid #4CAF50; border-width: 0 4px 4px 0;
-                transform: rotate(45deg); animation: draw 0.5s ease forwards;
-            }}
-            @keyframes pop {{ from {{ transform: scale(0.5); opacity: 0; }} to {{ transform: scale(1); opacity: 1; }} }}
-            @keyframes draw {{ from {{ height: 0; }} to {{ height: 28px; }} }}
-            @keyframes fadeIn {{ from {{opacity:0;}} to {{opacity:1;}} }}
         </style>
         <script>
             function copyAndReview() {{
