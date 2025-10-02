@@ -20,8 +20,8 @@ businesses = {
         "google_review_url": "https://g.page/r/YYYYYYYY"
     },
     "salonunisex": {
-        "name": "Salon Unisex",
-        "type": "unisex salon",
+        "name": "Salon Unisex & Bridal Studio",
+        "type": "unisex salon and bridal studio",
         "google_review_url": "https://search.google.com/local/writereview?placeid=ChIJZ9bhmVqLXzkRFNPVjQcPi3w"
     }
 }
@@ -55,81 +55,37 @@ def review_page(code):
     <head>
         <title>{business['name']} Review</title>
         <style>
-            body {{
-                font-family: 'Segoe UI', Arial, sans-serif;
-                background: #f9fafc;
-                text-align: center;
-                padding: 40px;
+            body {{ font-family: Arial, sans-serif; text-align: center; padding: 40px; background: #f4f6f9; }}
+            .box {{ background: white; border: 1px solid #ddd; padding: 20px; border-radius: 12px; display: inline-block; width: 90%; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }}
+            button {{ margin: 15px; padding: 12px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; border: none; background: #4CAF50; color: white; }}
+            button:hover {{ background: #45a049; }}
+            /* Modal styles */
+            .modal {{ display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }}
+            .modal-content {{ background: white; padding: 30px; border-radius: 12px; text-align: center; width: 80%; max-width: 300px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }}
+            .checkmark {{
+                width: 56px; height: 56px; border-radius: 50%; display: inline-block;
+                border: 4px solid #4CAF50; position: relative; animation: pop 0.3s ease;
             }}
-            .box {{
-                background: #fff;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                padding: 30px;
-                border-radius: 16px;
-                display: inline-block;
-                max-width: 400px;
-                width: 90%;
+            .checkmark:after {{
+                content: ""; position: absolute; left: 14px; top: 6px;
+                width: 14px; height: 28px; border: solid #4CAF50; border-width: 0 4px 4px 0;
+                transform: rotate(45deg); animation: draw 0.5s ease forwards;
             }}
-            h2 {{ color: #333; }}
-            p#review {{
-                font-size: 16px;
-                padding: 15px;
-                border: 1px dashed #aaa;
-                border-radius: 10px;
-                background: #f1f1f9;
-            }}
-            button {{
-                margin-top: 20px;
-                padding: 14px 24px;
-                font-size: 16px;
-                border: none;
-                border-radius: 12px;
-                cursor: pointer;
-                background: #4CAF50;
-                color: white;
-                transition: 0.3s;
-                width: 100%;
-            }}
-            button:hover {{
-                background: #43a047;
-            }}
-            /* Responsive full-width modal */
-            .modal {{
-                display: none;
-                position: fixed;
-                z-index: 9999;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0,0,0,0.6);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }}
-            .modal-content {{
-                background-color: #fff;
-                padding: 20px;
-                border-radius: 16px;
-                width: 90%;
-                max-width: 400px;
-                text-align: center;
-                animation: fadeIn 0.4s;
-            }}
-            @keyframes fadeIn {{
-                from {{opacity: 0; transform: translateY(-20px);}}
-                to {{opacity: 1; transform: translateY(0);}}
-            }}
+            @keyframes pop {{ from {{ transform: scale(0.5); opacity: 0; }} to {{ transform: scale(1); opacity: 1; }} }}
+            @keyframes draw {{ from {{ height: 0; }} to {{ height: 28px; }} }}
         </style>
         <script>
             function copyAndReview() {{
                 const reviewText = document.getElementById("review").innerText;
                 navigator.clipboard.writeText(reviewText).then(() => {{
-                    document.getElementById("myModal").style.display = "flex";
+                    const modal = document.getElementById("myModal");
+                    modal.style.display = "flex";
                     setTimeout(() => {{
                         window.open("{business['google_review_url']}", "_blank");
-                        document.getElementById("myModal").style.display = "none";
+                        modal.style.display = "none";
                     }}, 1500);
+                }}).catch(() => {{
+                    alert("❌ Copy failed, please try again.");
                 }});
             }}
         </script>
@@ -138,13 +94,14 @@ def review_page(code):
         <div class="box">
             <h2>{business['name']}</h2>
             <p id="review">{suggested_review}</p>
-            <button onclick="copyAndReview()">📋 Copy & Leave Review</button>
+            <button onclick="copyAndReview()">📋 Copy & Review</button>
         </div>
 
         <!-- Modal -->
         <div id="myModal" class="modal">
             <div class="modal-content">
-                <p>✅ Review copied! Redirecting you to Google Reviews...</p>
+                <div class="checkmark"></div>
+                <p style="margin-top:15px; font-size:16px; color:#333;">Copied! Redirecting...</p>
             </div>
         </div>
     </body>
