@@ -4,20 +4,13 @@ import os
 
 app = Flask(__name__)
 
-# Set your OpenAI API key in environment variables
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Business details with their Google review links
 businesses = {
     "salonA": {
         "name": "Salon A",
         "type": "salon",
         "google_review_url": "https://search.google.com/local/writereview?placeid=ChIJZ9bhmVqLXzkRFNPVjQcPi3w"
-    },
-    "hospitalB": {
-        "name": "Hospital B",
-        "type": "hospital",
-        "google_review_url": "https://g.page/r/YYYYYYYY"
     },
     "salonunisex": {
         "name": "Salon Unisex & Bridal Studio",
@@ -26,10 +19,8 @@ businesses = {
     }
 }
 
-# Generate AI-powered review
 def generate_review(business_name, business_type):
     prompt = f"Write a short, natural and positive Google review for a {business_type} named {business_name}. Keep it friendly and realistic."
-    
     response = openai.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -39,7 +30,6 @@ def generate_review(business_name, business_type):
         max_tokens=50,
         temperature=0.7
     )
-    
     return response.choices[0].message.content.strip()
 
 @app.route("/r/<code>")
@@ -57,11 +47,32 @@ def review_page(code):
         <style>
             body {{ font-family: Arial, sans-serif; text-align: center; padding: 40px; background: #f4f6f9; }}
             .box {{ background: white; border: 1px solid #ddd; padding: 20px; border-radius: 12px; display: inline-block; width: 90%; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }}
-            button {{ margin: 15px; padding: 12px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; border: none; background: #4CAF50; color: white; }}
+            button {{ margin: 15px; padding: 12px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; border: none; background: #4CAF50; color: white; width: 100%; }}
             button:hover {{ background: #45a049; }}
+            p#review {{ font-size: 16px; padding: 15px; border: 1px dashed #aaa; border-radius: 10px; background: #f1f1f9; }}
             /* Modal styles */
-            .modal {{ display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }}
-            .modal-content {{ background: white; padding: 30px; border-radius: 12px; text-align: center; width: 80%; max-width: 300px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }}
+            .modal {{
+                display: none;  /* hidden by default! */
+                position: fixed;
+                z-index: 9999;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.6);
+                align-items: center;
+                justify-content: center;
+            }}
+            .modal-content {{
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                text-align: center;
+                width: 80%;
+                max-width: 300px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                animation: fadeIn 0.3s ease;
+            }}
             .checkmark {{
                 width: 56px; height: 56px; border-radius: 50%; display: inline-block;
                 border: 4px solid #4CAF50; position: relative; animation: pop 0.3s ease;
@@ -73,13 +84,14 @@ def review_page(code):
             }}
             @keyframes pop {{ from {{ transform: scale(0.5); opacity: 0; }} to {{ transform: scale(1); opacity: 1; }} }}
             @keyframes draw {{ from {{ height: 0; }} to {{ height: 28px; }} }}
+            @keyframes fadeIn {{ from {{opacity:0;}} to {{opacity:1;}} }}
         </style>
         <script>
             function copyAndReview() {{
                 const reviewText = document.getElementById("review").innerText;
                 navigator.clipboard.writeText(reviewText).then(() => {{
                     const modal = document.getElementById("myModal");
-                    modal.style.display = "flex";
+                    modal.style.display = "flex";  // show modal only after button click
                     setTimeout(() => {{
                         window.open("{business['google_review_url']}", "_blank");
                         modal.style.display = "none";
