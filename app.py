@@ -12,7 +12,7 @@ businesses = {
     "salonA": {
         "name": "Salon A",
         "type": "salon",
-        "google_review_url": "https://search.google.com/local/writereview?placeid=ChIJZ9bhmVqLXzkRFNPVjQcPi3w"  # Replace with actual link
+        "google_review_url": "https://search.google.com/local/writereview?placeid=ChIJZ9bhmVqLXzkRFNPVjQcPi3w"
     },
     "hospitalB": {
         "name": "Hospital B",
@@ -20,7 +20,7 @@ businesses = {
         "google_review_url": "https://g.page/r/YYYYYYYY"
     },
     "salonunisex": {
-        "name": "salon unisex",
+        "name": "Salon Unisex",
         "type": "unisex salon",
         "google_review_url": "https://search.google.com/local/writereview?placeid=ChIJZ9bhmVqLXzkRFNPVjQcPi3w"
     }
@@ -31,7 +31,7 @@ def generate_review(business_name, business_type):
     prompt = f"Write a short, natural and positive Google review for a {business_type} named {business_name}. Keep it friendly and realistic."
     
     response = openai.chat.completions.create(
-        model="gpt-4o-mini",  # lightweight + cheap
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "You generate short, natural-sounding Google review suggestions."},
             {"role": "user", "content": prompt}
@@ -55,15 +55,74 @@ def review_page(code):
     <head>
         <title>{business['name']} Review</title>
         <style>
-            body {{ font-family: Arial, sans-serif; text-align: center; padding: 40px; }}
-            .box {{ border: 1px solid #ccc; padding: 20px; border-radius: 12px; display: inline-block; }}
-            button {{ margin: 10px; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; }}
+            body {{
+                font-family: 'Segoe UI', Arial, sans-serif;
+                background: #f9fafc;
+                text-align: center;
+                padding: 40px;
+            }}
+            .box {{
+                background: #fff;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                padding: 30px;
+                border-radius: 16px;
+                display: inline-block;
+                max-width: 400px;
+            }}
+            h2 {{ color: #333; }}
+            p#review {{
+                font-size: 16px;
+                padding: 15px;
+                border: 1px dashed #aaa;
+                border-radius: 10px;
+                background: #f1f1f9;
+            }}
+            button {{
+                margin-top: 20px;
+                padding: 12px 24px;
+                font-size: 16px;
+                border: none;
+                border-radius: 12px;
+                cursor: pointer;
+                background: #4CAF50;
+                color: white;
+                transition: 0.3s;
+            }}
+            button:hover {{
+                background: #43a047;
+            }}
+            /* Stylish modal */
+            .modal {{
+                display: none;
+                position: fixed;
+                z-index: 1;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0,0,0,0.4);
+            }}
+            .modal-content {{
+                background-color: #fff;
+                margin: 15% auto;
+                padding: 20px;
+                border-radius: 12px;
+                width: 80%;
+                max-width: 300px;
+                text-align: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }}
         </style>
         <script>
-            function copyReview() {{
+            function copyAndReview() {{
                 const reviewText = document.getElementById("review").innerText;
                 navigator.clipboard.writeText(reviewText).then(() => {{
-                    alert("✅ Review copied! Now click 'Write Google Review'.");
+                    document.getElementById("myModal").style.display = "block";
+                    setTimeout(() => {{
+                        window.open("{business['google_review_url']}", "_blank");
+                        document.getElementById("myModal").style.display = "none";
+                    }}, 1500);
                 }});
             }}
         </script>
@@ -72,10 +131,14 @@ def review_page(code):
         <div class="box">
             <h2>{business['name']}</h2>
             <p id="review">{suggested_review}</p>
-            <button onclick="copyReview()">📋 Copy Review</button>
-            <a href="{business['google_review_url']}" target="_blank">
-                <button>✍️ Write Google Review</button>
-            </a>
+            <button onclick="copyAndReview()">📋 Copy & Leave Review</button>
+        </div>
+
+        <!-- Modal -->
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <p>✅ Review copied! Redirecting you to Google Reviews...</p>
+            </div>
         </div>
     </body>
     </html>
