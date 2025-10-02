@@ -1,96 +1,55 @@
-from flask import Flask, request, render_template_string
 import os
-import openai
+from flask import Flask, render_template_string
+from openai import OpenAI
 
 app = Flask(__name__)
 
-# Set OpenAI API key as environment variable on Render
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Initialize OpenAI client
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-# Example business mapping
-business_links = {
-    "salonA": "https://g.page/salonA/review",
-    "hospitalB": "https://g.page/hospitalB/review",
-    # Add more businesses here
+# Business categories mapping
+business_categories = {
+    "salonA": "salon and beauty services",
+    "hospitalB": "hospital and healthcare",
+    "cafeC": "coffee shop and cafe",
 }
 
-# Route for QR links
-@app.route("/r/<business_id>")
-def review_page(business_id):
-    review_link = business_links.get(business_id)
-    if not review_link:
-        return "Invalid Business QR", 404
+@app.route("/")
+def home():
+    return "Welcome! Use /r/<code> to see a business review page."
 
-    # Generate dynamic review suggestion from OpenAI
-    prompt = f"Generate a short 2-3 sentence 5-star Google review for {business_id}. Keep it natural and professional."
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=80
-        )
-        suggested_review = response.choices[0].message.content.strip()
-    except Exception as e:
-        suggested_review = "⭐⭐⭐⭐⭐ Great service! Highly recommended."
+@app.route("/r/<code>")
+def review_page(code):
+    if code not in business_categories:
+        return "This business is not registered yet."
 
-    # Render simple webpage with notification-style banner
+    # Generate AI review suggestion
+    prompt = f"Write a short, positive Google review (1-2 sentences) for a {business_categories[code]}."
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",  # lightweight + cost effective
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=60,
+    )
+
+    review = response.choices[0].message.content.strip()
+
     html = f"""
-    <!DOCTYPE html>
     <html>
-    <head>
-      <title>Suggested Review</title>
-      <style>
-        #reviewNotification {{
-          display: block;
-          position: fixed;
-          top: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: #f1f1f1;
-          padding: 15px 20px;
-          border-radius: 10px;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-          width: 90%;
-          max-width: 400px;
-          text-align: center;
-          font-family: sans-serif;
-          z-index: 1000;
-        }}
-        button {{
-          margin: 5px;
-          padding: 8px 15px;
-          border: none;
-          border-radius: 5px;
-          background: #007bff;
-          color: white;
-          cursor: pointer;
-        }}
-        button:hover {{ background: #0056b3; }}
-      </style>
-    </head>
-    <body>
-      <div id="reviewNotification">
-        <p id="reviewText"><strong>{suggested_review}</strong></p>
-        <button onclick="copyReview()">Copy Review</button>
-        <button onclick="leaveReview()">Leave Review</button>
-      </div>
-
-      <script>
-        function copyReview() {{
-          let text = document.getElementById("reviewText").innerText;
-          navigator.clipboard.writeText(text).then(() => {{
-            alert("Review copied! Please paste it in Google Reviews.");
-          }});
-        }}
-
-        function leaveReview() {{
-          window.open("{review_link}", "_blank");
-        }}
-      </script>
-    </body>
+      <head>
+        <title>Review for {code}</title>
+      </head>
+      <body style="font-family: Arial; text-align: center; margin-top: 50px;">
+        <h2>Leave a Review</h2>
+        <p>Suggested review:</p>
+        <textarea rows="4" cols="50">{review}</textarea>
+        <br><br>
+        <a href="https://www.google.com/maps/search/?api=1&query={code}" target="_blank">
+          👉 Click here to post on Google Reviews
+        </a>
+      </body>
     </html>
     """
-    return html
+    return render_template_string(html)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=5000)
