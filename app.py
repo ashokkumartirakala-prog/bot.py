@@ -19,6 +19,10 @@ businesses = {
         "type": "hospital",
         "google_review_url": "https://g.page/r/YYYYYYYY"
     }
+    "salonunisex": {
+        "name": "salon unisex",
+        "type": "salonunisex and bridal studio",
+        "google_review_url": "https://search.google.com/local/writereview?placeid=ChIJZ9bhmVqLXzkRFNPVjQcPi3w"
 }
 
 # Generate AI-powered review
