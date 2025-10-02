@@ -43,6 +43,7 @@ def review_page(code):
     <html>
     <head>
         <title>{business['name']} Review</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
             body {{
                 font-family: Arial, sans-serif;
@@ -70,7 +71,7 @@ def review_page(code):
             }}
             button {{
                 margin-top: 10px;
-                padding: 12px 0;
+                padding: 14px 0;
                 font-size: 16px;
                 border-radius: 8px;
                 cursor: pointer;
@@ -83,6 +84,7 @@ def review_page(code):
             button:hover {{
                 background: #45a049;
             }}
+
             /* Modal styles */
             .modal {{
                 display: none;
@@ -92,7 +94,7 @@ def review_page(code):
                 top: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(0,0,0,0.5);
+                background-color: rgba(0,0,0,0.6);
                 align-items: center;
                 justify-content: center;
                 padding: 15px;
@@ -103,13 +105,13 @@ def review_page(code):
                 border-radius: 20px;
                 text-align: center;
                 width: 90%;
-                max-width: 350px;
+                max-width: 400px;
                 box-shadow: 0 8px 25px rgba(0,0,0,0.3);
                 animation: fadeIn 0.3s ease;
             }}
             .checkmark {{
-                width: 70px;
-                height: 70px;
+                width: 80px;
+                height: 80px;
                 border-radius: 50%;
                 display: inline-block;
                 border: 5px solid #4CAF50;
@@ -119,10 +121,10 @@ def review_page(code):
             .checkmark:after {{
                 content: "";
                 position: absolute;
-                left: 20px;
-                top: 10px;
-                width: 20px;
-                height: 40px;
+                left: 24px;
+                top: 12px;
+                width: 24px;
+                height: 48px;
                 border: solid #4CAF50;
                 border-width: 0 5px 5px 0;
                 transform: rotate(45deg);
@@ -134,17 +136,39 @@ def review_page(code):
             }}
             @keyframes draw {{
                 from {{ height: 0; }}
-                to {{ height: 40px; }}
+                to {{ height: 48px; }}
             }}
             @keyframes fadeIn {{
                 from {{ opacity: 0; }}
                 to {{ opacity: 1; }}
             }}
             .modal-content p {{
-                font-size: 18px;
+                font-size: 22px;
                 color: #333;
-                margin-top: 20px;
-                font-weight: 500;
+                margin-top: 25px;
+                font-weight: 600;
+            }}
+
+            /* Mobile-specific adjustments */
+            @media (max-width: 480px) {{
+                .modal-content {{
+                    width: 95%;
+                    padding: 50px 25px;
+                }}
+                .checkmark {{
+                    width: 100px;
+                    height: 100px;
+                }}
+                .checkmark:after {{
+                    left: 30px;
+                    top: 15px;
+                    width: 30px;
+                    height: 60px;
+                }}
+                .modal-content p {{
+                    font-size: 24px;
+                    margin-top: 30px;
+                }}
             }}
         </style>
         <script>
